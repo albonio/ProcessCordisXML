@@ -38,6 +38,21 @@ public class ProcessCordisXML {
     
     private static boolean eu_us_comparative = false;
     
+    private static int maxProjectDurationYears = 4; // TODO depend on frameProgram???
+    private static int minProjecTotalCost = 22222; // TODO depend on frameProgram???
+    private static int METHOD_MEAN = 1;
+    private static int METHOD_MIN = 2;
+    private static int METHOD_STATIC_MIN = 3;
+    private static int methodProjecTotalCost_FP1 = METHOD_STATIC_MIN;
+    private static int methodProjecTotalCost_FP2 = METHOD_MEAN;
+    private static int methodProjecTotalCost_FP3 = METHOD_MEAN;
+    private static int methodProjecTotalCost_FP4 = METHOD_MEAN;
+    private static int methodProjecTotalCost_FP5 = METHOD_MEAN;
+    private static int methodProjecTotalCost_FP6 = METHOD_MEAN;
+    private static int methodProjecTotalCost_FP7 = METHOD_MEAN;
+    private static int methodProjecTotalCost_H2020 = METHOD_MEAN;
+
+
     // short project remove
     private static boolean removeShortTextProjects = true;
     private static int shortTextProjectsThreshold = 100;
@@ -87,7 +102,8 @@ public class ProcessCordisXML {
 	//eu_us_comparative
 	private static int[] metadataProjectsFields = {3,4,6,7};//{0,3,4,5,6,7,8,9};
 	private static String[] metadataProjectsHeaders = {"Acronym","Teaser","Objective","Title","TotalCost","EcMaxContribution","StartDate","EndDate","ContractDuration","Status"};
-
+	private static int totalCostPosition = 4;
+	
 	// frameProgram
 	private static final int FP1 = 1;
 	private static final int FP2 = 2;
@@ -159,37 +175,77 @@ public class ProcessCordisXML {
         if(FP1process){
         	System.out.println("\nProcessing FP1 projects:");
         	xmlContentsFP1 	= readCordisZipFile(inputDir  + File.separator + FP1projectsZipfile, FP1);
+        	if(methodProjecTotalCost_FP1 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP1);
+        	} else if(methodProjecTotalCost_FP1 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP1);
+        	}
         } 
         if(FP2process){
         	System.out.println("\nProcessing FP2 projects:");
         	xmlContentsFP2 	= readCordisZipFile(inputDir  + File.separator + FP2projectsZipfile, FP2);
+        	if(methodProjecTotalCost_FP2 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP2);
+        	} else if(methodProjecTotalCost_FP2 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP2);
+        	}
         } 
         if(FP3process){
         	System.out.println("\nProcessing FP3 projects:");
         	xmlContentsFP3 	= readCordisZipFile(inputDir  + File.separator + FP3projectsZipfile, FP3);
+        	if(methodProjecTotalCost_FP3 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP3);
+        	} else if(methodProjecTotalCost_FP3 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP3);
+        	}
         } 
         
         if(FP4process){
         	System.out.println("\nProcessing FP4 projects:");
         	HashMap<Integer, List<String>> csvContentsFP4 = CSVUtil.readCSV(inputDir  + File.separator + FP4projectsCsvfile);
         	xmlContentsFP4 	= readCordisCsvFile(csvContentsFP4);
+        	if(methodProjecTotalCost_FP4 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP4);
+        	} else if(methodProjecTotalCost_FP4 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP4);
+        	}
         } 
         
         if(FP5process){
         	System.out.println("\nProcessing FP5 projects:");
         	xmlContentsFP5 	= readCordisZipFile(inputDir  + File.separator + FP5projectsZipfile, FP5);
+        	if(methodProjecTotalCost_FP5 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP5);
+        	} else if(methodProjecTotalCost_FP5 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP5);
+        	}
         } 
         if(FP6process){
         	System.out.println("\nProcessing FP6 projects:");
         	xmlContentsFP6 	= readCordisZipFile(inputDir  + File.separator + FP6projectsZipfile, FP6);
+        	if(methodProjecTotalCost_FP6 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP6);
+        	} else if(methodProjecTotalCost_FP6 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP6);
+        	}
         }    
         if(FP7process){
         	System.out.println("\nProcessing FP7 projects:");
         	xmlContentsFP7 	= readCordisZipFile(inputDir  + File.separator + FP7projectsZipfile, FP7);
+        	if(methodProjecTotalCost_FP7 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsFP7);
+        	} else if(methodProjecTotalCost_FP7 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsFP7);
+        	}
         }
         if(H2020process){	
 	        System.out.println("\nProcessing H2020 projects:");
 	        xmlContentsH2020 = readCordisZipFile(inputDir  + File.separator + H2020projectsZipfile, H2020);
+        	if(methodProjecTotalCost_H2020 == METHOD_MIN){
+        		calculateMinProjecTotalCost(xmlContentsH2020);
+        	} else if(methodProjecTotalCost_H2020 == METHOD_MEAN){
+        		calculateMeanProjecTotalCost(xmlContentsH2020);
+        	}
         }
      
         
@@ -303,6 +359,63 @@ public class ProcessCordisXML {
 	}
 	
 
+	private static void calculateMeanProjecTotalCost(HashMap<Integer, List<String>> xmlContents) {
+		// TODO xmlContents store objects not a list
+		Double mean = 0d;
+		int xmlContentsSize = xmlContents.size();
+		
+		// calculate mean
+		int cnt_not_null = 0;
+		for(Map.Entry<Integer,  List<String>> entry : xmlContents.entrySet()){
+			List<String> content = entry.getValue();
+			Double totalCost = Double.parseDouble(content.get(totalCostPosition));
+			if(totalCost > 0){
+				mean += totalCost;
+				cnt_not_null++;
+			}
+		}
+		if(cnt_not_null > 0){
+			mean = mean/cnt_not_null;
+		} else {
+			return;
+		}
+		System.out.println("mean: " + mean);
+		
+		// replace mean
+		for(Map.Entry<Integer,  List<String>> entry : xmlContents.entrySet()){
+			List<String> content = entry.getValue();
+			Double totalCost = Double.parseDouble(content.get(totalCostPosition));
+			if(totalCost == 0){
+				content.set(totalCostPosition, "" + df4.format(mean));//TODO format
+			}
+		}
+	}
+	
+	private static void calculateMinProjecTotalCost(HashMap<Integer, List<String>> xmlContents) {
+		// TODO xmlContents store objects not a list
+		Double min = 1000000000d;
+		
+		// calculate min
+		for(Map.Entry<Integer,  List<String>> entry : xmlContents.entrySet()){
+			List<String> content = entry.getValue();
+			Double totalCost = Double.parseDouble(content.get(totalCostPosition));
+			if(totalCost > 0 && totalCost < min){
+				min = totalCost;
+			}
+		}
+		System.out.println("min: " + min);
+
+		// replace min
+		for(Map.Entry<Integer,  List<String>> entry : xmlContents.entrySet()){
+			List<String> content = entry.getValue();
+			Double totalCost = Double.parseDouble(content.get(totalCostPosition));
+			if(totalCost == 0){
+				content.set(totalCostPosition, "" + df4.format(min));//TODO format
+			}
+		}
+	}
+
+
 	private static HashMap<Integer, List<String>> readCordisCsvFile(HashMap<Integer, List<String>> csvContents) {
 		HashMap<Integer, List<String>> contents = new HashMap<Integer, List<String>>(10000);
 			
@@ -380,7 +493,7 @@ public class ProcessCordisXML {
 		for(int i=0; i < ldaTextProjectsFields.length; i++){
 			ret += cleanString(listContent.get(ldaTextProjectsFields[i])) + " ";
 		}		
-		return ret.trim();//TODO toLower??
+		return ret.trim().toLowerCase();//TODO toLower??
 	}
 	
 	private static void writeLDALines(HashMap<Integer, List<String>> xmlContents, BufferedWriter stdWriter) {	
@@ -506,7 +619,7 @@ public class ProcessCordisXML {
 	private static String processMetadataLine(List<String> listContent) {
 		String ret = "";
 		for(int i=0; i < metadataProjectsFields.length; i++){
-			ret += DEFAULT_SEPARATOR + "\"" + cleanString(listContent.get(metadataProjectsFields[i])) + "\"";
+			ret += DEFAULT_SEPARATOR + "\"" + listContent.get(metadataProjectsFields[i]).toLowerCase() + "\"";//TODO toLower
 		}		
 		return ret;
 	}
@@ -514,7 +627,6 @@ public class ProcessCordisXML {
 
 	private static int processProjectCSV(List<String> inputLine, List<String> contents) {
 		if (inputLine.size() > 0) {
-			// TODO colocar campos en contents y devolver id
 			//RCN;Project Title;Start Date;End Date;Duration;Status;Contract Number;Keywords;Date of Signature;Total Cost;
 			// Total Funding; Project Website;Project Call;Project Acronym;General Information;Achievements;Objectives;Activity Area;Contract Type;Subject;
 			// Framework Programme;PGA;Coordinator Country;Contractor Country
@@ -553,9 +665,13 @@ public class ProcessCordisXML {
 	        // TotalCost
 	        String projectTotalCost = (String) inputLine.get(9);
 	        projectTotalCost = cleanString(projectTotalCost);
-	        projectTotalCost = projectTotalCost.replaceAll(" ", "").replaceAll(",", ".");
-	        if(projectTotalCost.trim().length() == 0){
-	        	projectTotalCost = "0";
+	        projectTotalCost = projectTotalCost.replaceAll(" ", "").replaceAll(",", "."); 
+	        if((projectTotalCost.trim().length() == 0)||((methodProjecTotalCost_FP4 == METHOD_STATIC_MIN) && (Double.parseDouble(projectTotalCost) < minProjecTotalCost))){
+	        	if(methodProjecTotalCost_FP4 == METHOD_STATIC_MIN){//get method
+	        		projectTotalCost = ""+ minProjecTotalCost;
+	        	} else {
+	        		projectTotalCost = ""+ 0;
+	        	}
 	        }
 	        
 	        // EcMaxContribution
@@ -566,10 +682,6 @@ public class ProcessCordisXML {
 	        	projectEcMaxContribution = "0";
 	        }       
 	        
-	        
-	        if(projectTotalCost.length() > 15 || projectEcMaxContribution.length() > 15){
-	        	System.out.println();
-	        }
 	        // get Max
 	        double iProjectTotalCost = Double.parseDouble(projectTotalCost);
 	        double iProjectEcMaxContribution = Double.parseDouble(projectEcMaxContribution);
@@ -584,19 +696,23 @@ public class ProcessCordisXML {
 	        }
 	        
 	        // StartDate
-	        // TODO check dates
 	        String projectStartDate = (String) inputLine.get(2);
+	        projectStartDate = checkDate(projectStartDate, true, FP4);
 	        contents.add(projectStartDate);  
 	       
 	        // EndDate
-	        // TODO check dates
 	        String projectEndDate = (String) inputLine.get(3);
+	        projectEndDate = checkDate(projectEndDate, false, FP4);
 	        contents.add(projectEndDate);  
 	        
 	        // ContractDuration
-	        // TODO duration
-	        String projectContractDuration = (String) inputLine.get(4);//TODO projectEndDate - projectStartDate or FP time frame
+	        String projectContractDuration = (String) inputLine.get(4);
+	        if(projectContractDuration.length() == 0){
+	        	projectContractDuration = "" + Math.min(maxProjectDurationYears, getProjectDuration(projectStartDate, projectEndDate));
+	        }
 	        contents.add(projectContractDuration);  
+
+	        
 	        
 	        // Status
 	        String projectStatus = (String) inputLine.get(5);
@@ -648,17 +764,23 @@ public class ProcessCordisXML {
         projectTitle = cleanString(projectTitle);
         contents.add(projectTitle);  
         
+//        if(projectName.equals("94504"))
+//        	System.out.println();
+
         // TotalCost
         String projectTotalCost = (String) exprProjectTotalCost.evaluate(doc, XPathConstants.STRING);
-        projectTotalCost = cleanString(projectTotalCost);
         projectTotalCost = projectTotalCost.replaceAll(" ", "").replaceAll(",", ".");
-        if(projectTotalCost.trim().length() == 0){
-        	projectTotalCost = "0";
+                
+        if((projectTotalCost.trim().length() == 0)||((getProjectTotalCostMethod(frameProgram) == METHOD_STATIC_MIN) && (Double.parseDouble(projectTotalCost) < minProjecTotalCost))){
+        	if(getProjectTotalCostMethod(frameProgram) == METHOD_STATIC_MIN){
+        		projectTotalCost = ""+ minProjecTotalCost;
+        	} else {
+        		projectTotalCost = ""+ 0;
+        	}
         }
         
         // EcMaxContribution
         String projectEcMaxContribution = (String) exprProjectEcMaxContribution.evaluate(doc, XPathConstants.STRING);
-        projectEcMaxContribution = cleanString(projectEcMaxContribution);
         projectEcMaxContribution = projectEcMaxContribution.replaceAll(" ", "").replaceAll(",", ".");
         if(projectEcMaxContribution.trim().length() == 0){
         	projectEcMaxContribution = "0";
@@ -679,12 +801,13 @@ public class ProcessCordisXML {
         }
         
         // StartDate
-        // TODO check dates
         String projectStartDate = (String) exprProjectStartDate.evaluate(doc, XPathConstants.STRING);
+        projectStartDate = checkDate(projectStartDate, true, frameProgram);
         contents.add(projectStartDate);  
        
         // EndDate
         String projectEndDate = (String) exprProjectEndDate.evaluate(doc, XPathConstants.STRING);
+        projectEndDate = checkDate(projectEndDate, false, frameProgram);
         contents.add(projectEndDate);  
         
         // ContractDuration
@@ -692,7 +815,7 @@ public class ProcessCordisXML {
         if(frameProgram == FP7||frameProgram == H2020){
         	projectContractDuration = (String) exprProjectContractDuration.evaluate(doc, XPathConstants.STRING);
         } else {
-        	projectContractDuration = "0";//TODO projectEndDate - projectStartDate or FP time frame
+        	projectContractDuration = "" + Math.min(maxProjectDurationYears, getProjectDuration(projectStartDate, projectEndDate));
         }
         contents.add(projectContractDuration);  
         
@@ -710,14 +833,132 @@ public class ProcessCordisXML {
 	
 	
 
+	private static int getProjectTotalCostMethod(int frameProgram) {
+		if(frameProgram == FP1){
+        	return methodProjecTotalCost_FP1;
+        } else if(frameProgram == FP2){
+        	return methodProjecTotalCost_FP2;
+        } else if(frameProgram == FP3){
+        	return methodProjecTotalCost_FP3;
+        } else if(frameProgram == FP4){
+        	return methodProjecTotalCost_FP4;        	
+        } else if(frameProgram == FP5){
+        	return methodProjecTotalCost_FP5;
+        } else if(frameProgram == FP6){
+        	return methodProjecTotalCost_FP6;
+        } else if(frameProgram == FP7){
+        	return methodProjecTotalCost_FP7;
+        } else if(frameProgram == H2020){
+        	return methodProjecTotalCost_H2020;
+        }
+		return methodProjecTotalCost_H2020; 
+	}
+
+
+	private static int getProjectDuration(String projectStartDate, String projectEndDate) {
+		String[] partsStartDate = projectStartDate.split("-");
+		String[] partsEndDate = projectEndDate.split("-");
+		
+		int startYear = Integer.parseInt(partsStartDate[0]);
+		int endYear = Integer.parseInt(partsEndDate[0]);
+		
+		return endYear - startYear;
+	}
+
+
 	private static boolean isProjectXMLfilename(String filename) {
 		if(filename.toLowerCase().contains("project")){
 			return true;
 		}
 		return false;
 	}
+	
+	// check dates
+	private static String checkDate(String inputDate, boolean startDate, int frameProgram) {
+		// format 1986-11-26
+		
+		// TODO use java Date to validate date
+		String[] parts = inputDate.split("-");
+		if(parts.length != 3){
+			return getLimitDates(frameProgram, startDate);
+		}
+		if(startDate){
+			if(Integer.parseInt(parts[0]) < getLimitYear(frameProgram, true)){
+				return getLimitDates(frameProgram, startDate);
+			}
+		} else {
+			if(Integer.parseInt(parts[0]) > getLimitYear(frameProgram, false) + getMaxProjectDurationYears(frameProgram)){
+				return getLimitDates(frameProgram, startDate);
+			}
+		} 
+		return inputDate;
+	}
 
 	
+	private static int getLimitYear(int frameProgram, boolean start) {
+		//		FP1 (1984–1987)
+		//		FP2 (1987–1991)
+		//		FP3 (1990–1994)
+		//		FP4 (1994-1998)
+		//		FP5 (1998-2002)
+		//		FP6 (2002-2006)
+		//		FP7 (2007-2013)
+		//		Horizon 2020 (2014-2020)
+		
+		if(frameProgram == FP1){
+        	return (start)?1984:1987;
+        } else if(frameProgram == FP2){
+        	return (start)?1987:1991;
+        } else if(frameProgram == FP3){
+        	return (start)?1990:1994;
+        } else if(frameProgram == FP4){
+        	return (start)?1994:1998;	        	
+        } else if(frameProgram == FP5){
+        	return (start)?1998:2002;
+        } else if(frameProgram == FP6){
+        	return (start)?2002:2006;
+        } else if(frameProgram == FP7){
+        	return (start)?2007:2013;
+        } else if(frameProgram == H2020){
+        	return (start)?2014:2020;
+        }
+		return (start)?2014:2020; 
+	}
+	
+	private static String getLimitDates(int frameProgram, boolean start) {
+		//		FP1 (1984–1987)
+		//		FP2 (1987–1991)
+		//		FP3 (1990–1994)
+		//		FP4 (1994-1998)
+		//		FP5 (1998-2002)
+		//		FP6 (2002-2006)
+		//		FP7 (2007-2013)
+		//		Horizon 2020 (2014-2020)
+		
+		if(frameProgram == FP1){
+        	return (start)?"1984-1-1":"1986-12-31";//TODO real limit dates
+        } else if(frameProgram == FP2){
+        	return (start)?"1987-1-1":"1991-12-31";
+        } else if(frameProgram == FP3){
+        	return (start)?"1990-1-1":"1993-12-31";
+        } else if(frameProgram == FP4){
+        	return (start)?"1994-1-1":"1997-12-31";	        	
+        } else if(frameProgram == FP5){
+        	return (start)?"1998-1-1":"2001-12-31";
+        } else if(frameProgram == FP6){
+        	return (start)?"2002-1-1":"2006-12-31";
+        } else if(frameProgram == FP7){
+        	return (start)?"2007-1-1":"2013-12-31";
+        } else if(frameProgram == H2020){
+        	return (start)?"2014-1-1":"2020-12-31";
+        }
+		return (start)?"2014-1-1":"2020-12-31"; 
+	}
+
+	private static int getMaxProjectDurationYears(int frameProgram) {
+		return maxProjectDurationYears;
+	}
+
 	// Util 
 	private static String cleanString(String field) {
 		String cleanString = field.replaceAll("\\P{InBasic_Latin}", "");

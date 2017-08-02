@@ -403,8 +403,7 @@ public class ProcessCordisXML {
 				min = totalCost;
 			}
 		}
-		System.out.print("min: " + min);
-		System.out.println();
+		System.out.println("min: " + min);
 
 		// replace min
 		for(Map.Entry<Integer,  List<String>> entry : xmlContents.entrySet()){

@@ -118,7 +118,6 @@ public class CSVUtil {
         }
 
         result.add(curVal.toString());
-
         return result;
     }
 
